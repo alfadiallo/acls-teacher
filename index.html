@@ -1,23 +1,74 @@
-async function sendMessage(userInput) {
-    try {
-        const response = await fetch('/.netlify/functions/gpt-proxy', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                messages: [
-                    { role: 'system', content: 'You are an ACLS Teacher.' },
-                    { role: 'user', content: userInput }
-                ]
-            })
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACLS Teacher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #output {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #fff;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>ACLS Teacher (Voice Interaction)</h1>
+    <p>Click the button and start speaking to begin your ACLS quiz!</p>
+    <button id="start-btn">🎙️ Start Quiz</button>
+    <div id="output">Your conversation will appear here...</div>
+
+    <script>
+        // Function to send a message to the GPT API via Netlify function
+        async function sendMessage(userInput) {
+            try {
+                const response = await fetch('/.netlify/functions/gpt-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'system', content: 'You are an ACLS Teacher.' },
+                            { role: 'user', content: userInput }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('output').innerText += `\nACLS Teacher: ${data.choices[0].message.content}`;
+                speak(data.choices[0].message.content);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerText += '\nError connecting to GPT.';
+            }
+        }
+
+        // Voice interaction trigger
+        document.getElementById('start-btn').addEventListener('click', () => {
+            const userInput = prompt("What would you like to ask the ACLS Teacher?");
+            sendMessage(userInput);
         });
 
-        const data = await response.json();
-        document.getElementById('output').innerText += `\nACLS Teacher: ${data.choices[0].message.content}`;
-        speak(data.choices[0].message.content);
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('output').innerText += '\nError connecting to GPT.';
-    }
-}
+        // Text-to-speech function
+        function speak(text) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            synth.speak(utterance);
+        }
+    </script>
+</body>
+</html>
