@@ -41,10 +41,28 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .toggle-container label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h1>Virtual SIM</h1>
+
+    <div class="toggle-container">
+        <label for="interaction-mode">Interaction Mode:</label>
+        <select id="interaction-mode">
+            <option value="voice">Voice</option>
+            <option value="standard">Standard</option>
+        </select>
+    </div>
 
     <div class="user-info">
         <label for="name">Name:</label>
@@ -64,8 +82,8 @@
         <button id="submit-info">Submit Info</button>
     </div>
 
-    <p>Click the button to start speaking to your ACLS Teacher!</p>
-    <button id="start-btn">🎙️ Start Quiz</button>
+    <p>Click the button to begin your Virtual SIM session!</p>
+    <button id="start-btn">🚀 Let's Go!</button>
     <div id="output">Your conversation will appear here...</div>
 
     <script>
@@ -84,12 +102,35 @@
     });
 
     // Initial case-based quiz prompt
-    const firstPrompt = "Great! Which topic would you like to cover today?\n\n🔴 Adult Cardiac Arrest Algorithm\n⚡ Adult Tachycardia With a Pulse Algorithm\n🐢 Adult Bradycardia Algorithm\n\nLet me know your choice, and I'll guide you through some case-based questions to sharpen your skills! 😊";
+    const firstPrompt = "Here's your first clinical vignette: A 56-year-old male presents to the ER with chest pain and shortness of breath. Vital signs: BP 100/60, HR 120, RR 22, SpO2 90%. What is your initial assessment?\n\nChoose one:\n1️⃣ Start Oxygen Therapy\n2️⃣ Perform an EKG\n3️⃣ Administer Aspirin";
 
     // Speech recognition setup
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'en-US';
     recognition.interimResults = false;
+
+    // Function to toggle interaction mode
+    document.getElementById('interaction-mode').addEventListener('change', (event) => {
+        const mode = event.target.value;
+        if (mode === 'voice') {
+            document.getElementById('start-btn').style.display = 'inline';
+        } else {
+            document.getElementById('start-btn').style.display = 'none';
+            displayStandardOptions();
+        }
+    });
+
+    // Function to display clickable options in standard mode
+    function displayStandardOptions() {
+        const output = document.getElementById('output');
+        output.innerHTML = `${firstPrompt}<br><button onclick="handleOption('Start Oxygen Therapy')">Start Oxygen Therapy</button><br><button onclick="handleOption('Perform an EKG')">Perform an EKG</button><br><button onclick="handleOption('Administer Aspirin')">Administer Aspirin</button>`;
+    }
+
+    // Function to handle standard mode option clicks
+    function handleOption(option) {
+        document.getElementById('output').innerHTML += `\nYou chose: ${option}`;
+        sendMessage(option);
+    }
 
     // Function to send a message to the GPT API via Netlify function
     async function sendMessage(userInput) {
