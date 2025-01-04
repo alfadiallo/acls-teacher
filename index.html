@@ -27,11 +27,16 @@
 </head>
 <body>
     <h1>ACLS Teacher (Voice Interaction)</h1>
-    <p>Click the button and start speaking to begin your ACLS quiz!</p>
+    <p>Click the button to start speaking to your ACLS Teacher!</p>
     <button id="start-btn">🎙️ Start Quiz</button>
     <div id="output">Your conversation will appear here...</div>
 
     <script>
+        // Speech recognition setup
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
         // Function to send a message to the GPT API via Netlify function
         async function sendMessage(userInput) {
             try {
@@ -49,7 +54,7 @@
                 });
 
                 const data = await response.json();
-                document.getElementById('output').innerText += `\nACLS Teacher: ${data.choices[0].message.content}`;
+                document.getElementById('output').innerText += `\nYou: ${userInput}\nACLS Teacher: ${data.choices[0].message.content}`;
                 speak(data.choices[0].message.content);
             } catch (error) {
                 console.error('Error:', error);
@@ -57,18 +62,30 @@
             }
         }
 
-        // Voice interaction trigger
-        document.getElementById('start-btn').addEventListener('click', () => {
-            const userInput = prompt("What would you like to ask the ACLS Teacher?");
-            sendMessage(userInput);
-        });
-
         // Text-to-speech function
         function speak(text) {
             const synth = window.speechSynthesis;
             const utterance = new SpeechSynthesisUtterance(text);
             synth.speak(utterance);
         }
+
+        // Start listening when the button is clicked
+        document.getElementById('start-btn').addEventListener('click', () => {
+            document.getElementById('output').innerText += '\nListening...';
+            recognition.start();
+        });
+
+        // Handle speech recognition results
+        recognition.onresult = (event) => {
+            const userInput = event.results[0][0].transcript;
+            document.getElementById('output').innerText += `\nYou: ${userInput}`;
+            sendMessage(userInput);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            document.getElementById('output').innerText += '\nError with speech recognition.';
+        };
     </script>
 </body>
 </html>
