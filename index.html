@@ -42,76 +42,19 @@
     <div id="output">Your conversation will appear here...</div>
 
     <script>
-        const firstPrompt = "Great! Which topic would you like to cover today?\n\n🔴 Adult Cardiac Arrest Algorithm\n⚡ Adult Tachycardia With a Pulse Algorithm\n🐢 Adult Bradycardia Algorithm\n\nLet me know your choice, and I'll guide you through some case-based questions to sharpen your skills! 😊";
+        const firstPrompt = "Great! Which topic would you like to cover today?\n\nAdult Cardiac Arrest Algorithm, Adult Tachycardia With a Pulse Algorithm, or Adult Bradycardia Algorithm.";
 
-        // Speech recognition setup
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-US';
         recognition.interimResults = false;
 
-        // Toggle between interaction modes
+        // Toggle between interaction methods
         document.getElementById('voice-btn').addEventListener('click', () => {
             document.getElementById('typing-interface').classList.add('hidden');
             recognition.start();
-            document.getElementById('output').innerText += `\nACLS Teacher: ${firstPrompt}`;
+            displayOutput(`ACLS Teacher: ${firstPrompt}`);
             speak(firstPrompt);
         });
 
         document.getElementById('typing-btn').addEventListener('click', () => {
-            document.getElementById('typing-interface').classList.remove('hidden');
-        });
-
-        // Handle typed input
-        document.getElementById('send-btn').addEventListener('click', () => {
-            const userInput = document.getElementById('user-input').value;
-            document.getElementById('output').innerText += `\nYou: ${userInput}`;
-            sendMessage(userInput);
-            document.getElementById('user-input').value = '';
-        });
-
-        // Handle speech input
-        recognition.onresult = (event) => {
-            const userInput = event.results[0][0].transcript;
-            document.getElementById('output').innerText += `\nYou: ${userInput}`;
-            sendMessage(userInput);
-        };
-
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error:', event.error);
-            document.getElementById('output').innerText += '\nError with speech recognition.';
-        };
-
-        // Function to send a message to the GPT API
-        async function sendMessage(userInput) {
-            try {
-                const response = await fetch('/.netlify/functions/gpt-proxy', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
-                            { role: 'user', content: userInput }
-                        ]
-                    })
-                });
-
-                const data = await response.json();
-                document.getElementById('output').innerText += `\nACLS Teacher: ${data.choices[0].message.content}`;
-                speak(data.choices[0].message.content);
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('output').innerText += '\nError connecting to GPT.';
-            }
-        }
-
-        // Text-to-speech function
-        function speak(text) {
-            const synth = window.speechSynthesis;
-            const utterance = new SpeechSynthesisUtterance(text);
-            synth.speak(utterance);
-        }
-    </script>
-</body>
-</html>
+            docum
