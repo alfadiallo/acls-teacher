@@ -1,8 +1,29 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async function(event) {
-    const { messages } = JSON.parse(event.body);
+    // Handle GET requests
+    if (event.httpMethod === "GET") {
+        return {
+            statusCode: 200,
+            body: "This endpoint is for POST requests only."
+        };
+    }
 
+    // Handle POST requests
+    let messages;
+    try {
+        messages = JSON.parse(event.body).messages;
+        if (!messages) {
+            throw new Error("Messages field is missing.");
+        }
+    } catch (error) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Invalid JSON input." })
+        };
+    }
+
+    // Send request to OpenAI API
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -24,7 +45,7 @@ exports.handler = async function(event) {
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to connect to OpenAI API.' })
+            body: JSON.stringify({ error: "Failed to connect to OpenAI API." })
         };
     }
 };
