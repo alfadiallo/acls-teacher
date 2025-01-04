@@ -1,18 +1,7 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async function(event) {
-    let messages;
-    try {
-        messages = JSON.parse(event.body).messages;
-        if (!messages) {
-            throw new Error("Messages field is missing.");
-        }
-    } catch (error) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: "Invalid JSON input." })
-        };
-    }
+    const { messages } = JSON.parse(event.body);
 
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -23,9 +12,12 @@ exports.handler = async function(event) {
             },
             body: JSON.stringify({
                 model: 'ft:gpt-4o-mini-2024-07-18:personal::AluBrqzB',
-                messages,
-                max_tokens: 500,  // Limit response length
-                temperature: 0.7  // Control randomness
+                messages: [
+                    { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
+                    { role: 'user', content: messages[messages.length - 1].content }
+                ],
+                max_tokens: 500,
+                temperature: 0.7
             })
         });
 
