@@ -1,6 +1,5 @@
 [functions]
   node_bundler = "esbuild"
-  timeout = 26
 
-[build.environment]
-  NODE_VERSION = "18"
+  [functions."gpt-proxy"]
+    timeout = 26
