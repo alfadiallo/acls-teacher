@@ -18,78 +18,100 @@
             background: #fff;
             white-space: pre-wrap;
         }
-        button {
-            padding: 10px 20px;
+        button, input {
+            padding: 10px;
             font-size: 16px;
-            cursor: pointer;
+            margin: 5px;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>ACLS Teacher (Voice Interaction)</h1>
-    <p>Click the button to start speaking to your ACLS Teacher!</p>
-    <button id="start-btn">🎙️ Start Quiz</button>
+    <h1>ACLS Teacher (Voice and Typing Interaction)</h1>
+    <p>Choose your interaction method:</p>
+    <button id="voice-btn">🎙️ Voice Interaction</button>
+    <button id="typing-btn">💬 Typing Interaction</button>
+
+    <div id="typing-interface" class="hidden">
+        <input type="text" id="user-input" placeholder="Type your question here...">
+        <button id="send-btn">Send</button>
+    </div>
+
     <div id="output">Your conversation will appear here...</div>
 
     <script>
-    // Initial case-based quiz prompt
-    const firstPrompt = "Great! Which topic would you like to cover today?\n\n🔴 Adult Cardiac Arrest Algorithm\n⚡ Adult Tachycardia With a Pulse Algorithm\n🐢 Adult Bradycardia Algorithm\n\nLet me know your choice, and I'll guide you through some case-based questions to sharpen your skills! 😊";
+        const firstPrompt = "Great! Which topic would you like to cover today?\n\n🔴 Adult Cardiac Arrest Algorithm\n⚡ Adult Tachycardia With a Pulse Algorithm\n🐢 Adult Bradycardia Algorithm\n\nLet me know your choice, and I'll guide you through some case-based questions to sharpen your skills! 😊";
 
-    // Speech recognition setup
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
+        // Speech recognition setup
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
 
-    // Function to send a message to the GPT API via Netlify function
-    async function sendMessage(userInput) {
-        try {
-            const response = await fetch('/.netlify/functions/gpt-proxy', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    messages: [
-                        { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
-                        { role: 'user', content: userInput }
-                    ]
-                })
-            });
+        // Toggle between interaction modes
+        document.getElementById('voice-btn').addEventListener('click', () => {
+            document.getElementById('typing-interface').classList.add('hidden');
+            recognition.start();
+            document.getElementById('output').innerText += `\nACLS Teacher: ${firstPrompt}`;
+            speak(firstPrompt);
+        });
 
-            const data = await response.json();
-            document.getElementById('output').innerText += `\nYou: ${userInput}\nACLS Teacher: ${data.choices[0].message.content}`;
-            speak(data.choices[0].message.content);
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('output').innerText += '\nError connecting to GPT.';
+        document.getElementById('typing-btn').addEventListener('click', () => {
+            document.getElementById('typing-interface').classList.remove('hidden');
+        });
+
+        // Handle typed input
+        document.getElementById('send-btn').addEventListener('click', () => {
+            const userInput = document.getElementById('user-input').value;
+            document.getElementById('output').innerText += `\nYou: ${userInput}`;
+            sendMessage(userInput);
+            document.getElementById('user-input').value = '';
+        });
+
+        // Handle speech input
+        recognition.onresult = (event) => {
+            const userInput = event.results[0][0].transcript;
+            document.getElementById('output').innerText += `\nYou: ${userInput}`;
+            sendMessage(userInput);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            document.getElementById('output').innerText += '\nError with speech recognition.';
+        };
+
+        // Function to send a message to the GPT API
+        async function sendMessage(userInput) {
+            try {
+                const response = await fetch('/.netlify/functions/gpt-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
+                            { role: 'user', content: userInput }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('output').innerText += `\nACLS Teacher: ${data.choices[0].message.content}`;
+                speak(data.choices[0].message.content);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').innerText += '\nError connecting to GPT.';
+            }
         }
-    }
 
-    // Text-to-speech function
-    function speak(text) {
-        const synth = window.speechSynthesis;
-        const utterance = new SpeechSynthesisUtterance(text);
-        synth.speak(utterance);
-    }
-
-    // Start the quiz with the initial prompt when the button is clicked
-    document.getElementById('start-btn').addEventListener('click', () => {
-        document.getElementById('output').innerText += `\nACLS Teacher: ${firstPrompt}`;
-        speak(firstPrompt);
-        recognition.start();
-    });
-
-    // Handle speech recognition results
-    recognition.onresult = (event) => {
-        const userInput = event.results[0][0].transcript;
-        document.getElementById('output').innerText += `\nYou: ${userInput}`;
-        sendMessage(userInput);
-    };
-
-    recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        document.getElementById('output').innerText += '\nError with speech recognition.';
-    };
-</script>
+        // Text-to-speech function
+        function speak(text) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            synth.speak(utterance);
+        }
+    </script>
 </body>
 </html>
