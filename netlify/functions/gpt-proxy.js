@@ -22,7 +22,7 @@ exports.handler = async function(event) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4',
+                model: 'ft:gpt-4o-mini-2024-07-18:personal::AluBrqzB',
                 messages,
                 max_tokens: 500,  // Limit response length
                 temperature: 0.7  // Control randomness
