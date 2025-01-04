@@ -116,20 +116,39 @@
             document.getElementById('start-btn').style.display = 'inline';
         } else {
             document.getElementById('start-btn').style.display = 'none';
-            displayStandardOptions();
+            displayStandardOptions(firstPrompt);
         }
     });
 
     // Function to display clickable options in standard mode
-    function displayStandardOptions() {
+    function displayStandardOptions(promptText) {
         const output = document.getElementById('output');
-        output.innerHTML = `${firstPrompt}<br><button onclick="handleOption('Start Oxygen Therapy')">Start Oxygen Therapy</button><br><button onclick="handleOption('Perform an EKG')">Perform an EKG</button><br><button onclick="handleOption('Administer Aspirin')">Administer Aspirin</button>`;
+        output.innerHTML = `${promptText}<br><button onclick="handleOption('Start Oxygen Therapy')">Start Oxygen Therapy</button><br><button onclick="handleOption('Perform an EKG')">Perform an EKG</button><br><button onclick="handleOption('Administer Aspirin')">Administer Aspirin</button>`;
     }
 
     // Function to handle standard mode option clicks
     function handleOption(option) {
         document.getElementById('output').innerHTML += `\nYou chose: ${option}`;
-        sendMessage(option);
+        processNextStep(option);
+    }
+
+    // Function to process the next step based on the selected option
+    function processNextStep(option) {
+        let nextPrompt;
+        switch(option) {
+            case 'Start Oxygen Therapy':
+                nextPrompt = "Is the patient breathing adequately?\n\nChoose one:\n1️⃣ Yes\n2️⃣ No";
+                break;
+            case 'Perform an EKG':
+                nextPrompt = "The EKG shows ST-elevation. What is your next step?\n\nChoose one:\n1️⃣ Administer Nitroglycerin\n2️⃣ Call for a cardiology consult";
+                break;
+            case 'Administer Aspirin':
+                nextPrompt = "The patient reports an allergy to aspirin. What is your next step?\n\nChoose one:\n1️⃣ Administer Clopidogrel\n2️⃣ Monitor the patient";
+                break;
+            default:
+                nextPrompt = "Invalid option. Please try again.";
+        }
+        displayStandardOptions(nextPrompt);
     }
 
     // Function to send a message to the GPT API via Netlify function
@@ -166,7 +185,7 @@
 
     // Start the quiz with the initial prompt when the button is clicked
     document.getElementById('start-btn').addEventListener('click', () => {
-        document.getElementById('output').innerText += `\nACLS Teacher: ${firstPrompt}`;
+        document.getElementById('output').innerText += `\nVirtual SIM: ${firstPrompt}`;
         speak(firstPrompt);
         recognition.start();
     });
