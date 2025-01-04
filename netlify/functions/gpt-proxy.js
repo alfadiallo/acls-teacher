@@ -1,15 +1,6 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async function(event) {
-    // Handle GET requests
-    if (event.httpMethod === "GET") {
-        return {
-            statusCode: 200,
-            body: "This endpoint is for POST requests only."
-        };
-    }
-
-    // Handle POST requests
     let messages;
     try {
         messages = JSON.parse(event.body).messages;
@@ -23,7 +14,6 @@ exports.handler = async function(event) {
         };
     }
 
-    // Send request to OpenAI API
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -33,7 +23,9 @@ exports.handler = async function(event) {
             },
             body: JSON.stringify({
                 model: 'gpt-4',
-                messages
+                messages,
+                max_tokens: 500,  // Limit response length
+                temperature: 0.7  // Control randomness
             })
         });
 
