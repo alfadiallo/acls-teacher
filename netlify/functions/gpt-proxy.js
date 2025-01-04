@@ -11,7 +11,7 @@ exports.handler = async function(event) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'ft:gpt-4o-mini-2024-07-18:personal::AluBrqzB',
+                model: 'ACLS Coach',
                 messages: [
                     { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
                     { role: 'user', content: messages[messages.length - 1].content }
