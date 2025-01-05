@@ -25,6 +25,14 @@ exports.handler = async function(event) {
         };
     }
 
+    // If no messages are sent in the request, start with Vignette 1
+    if (!messages || messages.length === 0) {
+        messages = [
+            { role: 'system', content: 'You are an ACLS Instructor. Guide the user through case-based scenarios in a quiz format.' },
+            { role: 'assistant', content: 'Vignette 1: A 55-year-old male is found unresponsive. Bystanders report he suddenly collapsed. What is the next step?' }
+        ];
+    }
+
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -34,10 +42,7 @@ exports.handler = async function(event) {
             },
             body: JSON.stringify({
                 model: 'ft:gpt-4o-mini-2024-07-18:personal::Am9r0EsV',
-                messages: [
-                    { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
-                    ...messages
-                ],
+                messages: messages,
                 max_tokens: 500,
                 temperature: 0.7
             })
