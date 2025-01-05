@@ -1,11 +1,19 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async function(event) {
-    const { messages } = JSON.parse(event.body);
+    let messages;
+    try {
+        messages = JSON.parse(event.body).messages;
+    } catch (error) {
+        console.error("Error parsing JSON:", error);
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Invalid request body" })
+        };
+    }
 
-    // Log the model being used
     console.log("Using model: ACLS Coach");
-    
+
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -30,6 +38,7 @@ exports.handler = async function(event) {
             body: JSON.stringify(data)
         };
     } catch (error) {
+        console.error("Error connecting to OpenAI:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: "Failed to connect to OpenAI API." })
