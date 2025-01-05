@@ -101,57 +101,6 @@
         }
     });
 
-    // Initial case-based quiz prompt
-    const firstPrompt = "Loading Vignette 1...";
-
-
-    // Speech recognition setup
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-
-    // Function to toggle interaction mode
-    document.getElementById('interaction-mode').addEventListener('change', (event) => {
-        const mode = event.target.value;
-        if (mode === 'voice') {
-            document.getElementById('start-btn').style.display = 'inline';
-        } else {
-            document.getElementById('start-btn').style.display = 'none';
-            displayStandardOptions(firstPrompt);
-        }
-    });
-
-    // Function to display clickable options in standard mode
-    function displayStandardOptions(promptText) {
-        const output = document.getElementById('output');
-        output.innerHTML = `${promptText}<br><button onclick="handleOption('Start Oxygen Therapy')">Start Oxygen Therapy</button><br><button onclick="handleOption('Perform an EKG')">Perform an EKG</button><br><button onclick="handleOption('Administer Aspirin')">Administer Aspirin</button>`;
-    }
-
-    // Function to handle standard mode option clicks
-    function handleOption(option) {
-        document.getElementById('output').innerHTML += `\nYou chose: ${option}`;
-        processNextStep(option);
-    }
-
-    // Function to process the next step based on the selected option
-    function processNextStep(option) {
-        let nextPrompt;
-        switch(option) {
-            case 'Start Oxygen Therapy':
-                nextPrompt = "Is the patient breathing adequately?\n\nChoose one:\n1️⃣ Yes\n2️⃣ No";
-                break;
-            case 'Perform an EKG':
-                nextPrompt = "The EKG shows ST-elevation. What is your next step?\n\nChoose one:\n1️⃣ Administer Nitroglycerin\n2️⃣ Call for a cardiology consult";
-                break;
-            case 'Administer Aspirin':
-                nextPrompt = "The patient reports an allergy to aspirin. What is your next step?\n\nChoose one:\n1️⃣ Administer Clopidogrel\n2️⃣ Monitor the patient";
-                break;
-            default:
-                nextPrompt = "Invalid option. Please try again.";
-        }
-        displayStandardOptions(nextPrompt);
-    }
-
     // Function to send a message to the GPT API via Netlify function
     async function sendMessage(userInput) {
         try {
@@ -162,46 +111,44 @@
                 },
                 body: JSON.stringify({
                     messages: [
-                        { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
+                        { role: 'system', content: 'You are an ACLS Instructor. Guide the user through case-based scenarios in a quiz format.' },
                         { role: 'user', content: userInput }
                     ]
                 })
             });
 
             const data = await response.json();
-            document.getElementById('output').innerText += `\nYou: ${userInput}\nACLS Teacher: ${data.choices[0].message.content}`;
-            speak(data.choices[0].message.content);
+            const assistantResponse = data.choices[0].message.content;
+            document.getElementById('output').innerText += `\nACLS Instructor: ${assistantResponse}`;
         } catch (error) {
             console.error('Error:', error);
             document.getElementById('output').innerText += '\nError connecting to GPT.';
         }
     }
 
-    // Text-to-speech function
-    function speak(text) {
-        const synth = window.speechSynthesis;
-        const utterance = new SpeechSynthesisUtterance(text);
-        synth.speak(utterance);
-    }
+    // Function to start the Virtual SIM session
+    document.getElementById('start-btn').addEventListener('click', async () => {
+        document.getElementById('output').innerText = "Loading Vignette 1...";
 
-    // Start the quiz with the initial prompt when the button is clicked
-    document.getElementById('start-btn').addEventListener('click', () => {
-        document.getElementById('output').innerText += `\nVirtual SIM: ${firstPrompt}`;
-        speak(firstPrompt);
-        recognition.start();
+        try {
+            const response = await fetch('/.netlify/functions/gpt-proxy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ messages: [] })
+            });
+
+            const data = await response.json();
+            const firstVignette = data.choices[0].message.content;
+
+            document.getElementById('output').innerText = `Virtual SIM: ${firstVignette}`;
+        } catch (error) {
+            document.getElementById('output').innerText = 'Error loading Vignette 1.';
+            console.error(error);
+        }
     });
 
-    // Handle speech recognition results
-    recognition.onresult = (event) => {
-        const userInput = event.results[0][0].transcript;
-        document.getElementById('output').innerText += `\nYou: ${userInput}`;
-        sendMessage(userInput);
-    };
-
-    recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        document.getElementById('output').innerText += '\nError with speech recognition.';
-    };
     </script>
 </body>
 </html>
