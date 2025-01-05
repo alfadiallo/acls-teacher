@@ -3,6 +3,9 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 exports.handler = async function(event) {
     const { messages } = JSON.parse(event.body);
 
+    // Log the model being used
+    console.log("Using model: ACLS Coach");
+    
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
