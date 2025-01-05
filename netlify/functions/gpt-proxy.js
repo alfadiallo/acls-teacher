@@ -25,11 +25,10 @@ exports.handler = async function(event) {
         };
     }
 
-    // If no messages are sent in the request, start with Vignette 1
+    // If no messages are sent in the request, start with Vignette 1 from the fine-tuned model
     if (!messages || messages.length === 0) {
         messages = [
-            { role: 'system', content: 'You are an ACLS Instructor. Guide the user through case-based scenarios in a quiz format.' },
-            { role: 'assistant', content: 'Vignette 1: A 55-year-old male is found unresponsive. Bystanders report he suddenly collapsed. What is the next step?' }
+            { role: 'system', content: 'You are an ACLS Instructor. Present Vignette 1 from the fine-tuned model.' }
         ];
     }
 
