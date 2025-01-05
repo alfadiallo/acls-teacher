@@ -15,14 +15,13 @@ exports.handler = async function(event) {
     console.log("Using model: ACLS Coach");
 
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch('https://api.openai.com/v1/gpts/ACLS-Coach/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'ACLS Coach',
                 messages: [
                     { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
                     { role: 'user', content: messages[messages.length - 1].content }
