@@ -1,11 +1,12 @@
-// Import node-fetch
 import fetch from 'node-fetch';
 
 exports.handler = async function(event) {
-    // Parse incoming request body
+    console.log("Function invoked with event:", event);
+
     let messages;
     try {
         messages = JSON.parse(event.body).messages;
+        console.log("Parsed messages:", messages);
     } catch (error) {
         console.error("Error parsing JSON:", error);
         return {
@@ -14,10 +15,8 @@ exports.handler = async function(event) {
         };
     }
 
-    // Update the model name to your new fine-tuned model
     console.log("Using model: ft:gpt-4o-mini-2024-07-18:personal::Am9r0EsV");
 
-    // Check if API key is provided
     if (!process.env.OPENAI_API_KEY) {
         console.error("Missing API key");
         return {
@@ -27,7 +26,6 @@ exports.handler = async function(event) {
     }
 
     try {
-        // Make API request to OpenAI
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -45,7 +43,6 @@ exports.handler = async function(event) {
             })
         });
 
-        // Check if the response is successful
         if (!response.ok) {
             const errorDetails = await response.json();
             console.error("OpenAI API error:", errorDetails);
@@ -55,8 +52,8 @@ exports.handler = async function(event) {
             };
         }
 
-        // Parse and return the response
         const data = await response.json();
+        console.log("Response from OpenAI:", data);
         return {
             statusCode: 200,
             body: JSON.stringify(data)
