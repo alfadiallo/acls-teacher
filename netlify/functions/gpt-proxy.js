@@ -1,6 +1,8 @@
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+// Import node-fetch
+import fetch from 'node-fetch';
 
 exports.handler = async function(event) {
+    // Parse incoming request body
     let messages;
     try {
         messages = JSON.parse(event.body).messages;
@@ -12,25 +14,47 @@ exports.handler = async function(event) {
         };
     }
 
-    console.log("Using model: ACLS Coach");
+    console.log("Using model: ft:gpt-4o-mini-2024-07-18");
+
+    // Check if API key is provided
+    if (!process.env.OPENAI_API_KEY) {
+        console.error("Missing API key");
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "Missing API key" })
+        };
+    }
 
     try {
-        const response = await fetch('https://api.openai.com/v1/gpts/ACLS-Coach/completions', {
+        // Make API request to OpenAI
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                model: 'ft:gpt-4o-mini-2024-07-18',
                 messages: [
                     { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
-                    { role: 'user', content: messages[messages.length - 1].content }
+                    ...messages
                 ],
                 max_tokens: 500,
                 temperature: 0.7
             })
         });
 
+        // Check if the response is successful
+        if (!response.ok) {
+            const errorDetails = await response.json();
+            console.error("OpenAI API error:", errorDetails);
+            return {
+                statusCode: response.status,
+                body: JSON.stringify({ error: errorDetails })
+            };
+        }
+
+        // Parse and return the response
         const data = await response.json();
         return {
             statusCode: 200,
