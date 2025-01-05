@@ -25,13 +25,6 @@ exports.handler = async function(event) {
         };
     }
 
-    // If no messages are sent in the request, start with Vignette 1 from the fine-tuned model
-    if (!messages || messages.length === 0) {
-        messages = [
-            { role: 'system', content: 'You are an ACLS Instructor. Present Vignette 1 from the fine-tuned model.' }
-        ];
-    }
-
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -58,9 +51,17 @@ exports.handler = async function(event) {
 
         const data = await response.json();
         console.log("Response from OpenAI:", data);
+
+        // Extract the assistant's response and options
+        const assistantResponse = data.choices[0].message.content;
+        const options = assistantResponse.split('\n').filter(line => line.startsWith('1️⃣') || line.startsWith('2️⃣') || line.startsWith('3️⃣'));
+
         return {
             statusCode: 200,
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                response: assistantResponse,
+                options: options
+            })
         };
     } catch (error) {
         console.error("Error connecting to OpenAI:", error);
