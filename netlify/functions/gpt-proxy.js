@@ -14,7 +14,8 @@ exports.handler = async function(event) {
         };
     }
 
-    console.log("Using model: ft:gpt-4o-mini-2024-07-18");
+    // Update the model name to your new fine-tuned model
+    console.log("Using model: ft:gpt-4o-mini-2024-07-18:personal::Am9r0EsV");
 
     // Check if API key is provided
     if (!process.env.OPENAI_API_KEY) {
@@ -34,7 +35,7 @@ exports.handler = async function(event) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'ft:gpt-4o-mini-2024-07-18',
+                model: 'ft:gpt-4o-mini-2024-07-18:personal::Am9r0EsV',
                 messages: [
                     { role: 'system', content: 'You are an ACLS Teacher. Guide the user through case-based scenarios in a quiz format.' },
                     ...messages
